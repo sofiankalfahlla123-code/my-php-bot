@@ -21,12 +21,13 @@ app.post('/upload', upload.single('document'), async (req, res) => {
             headers: form.getHeaders()
         });
 
-        res.status(200).send("Done");
+        // سنرسل هذه الرسالة لنتأكد أن Vercel هو من رد علينا
+        res.status(200).send("Success: Sent via Vercel Server");
     } catch (e) {
         console.error(e);
-        res.status(500).send("Error");
+        res.status(500).send("Error: " + e.message);
     }
 });
 
-// بدلاً من app.listen، نستخدم module.exports لـ Vercel
+// هذا السطر ضروري جداً لـ Vercel
 module.exports = app;
