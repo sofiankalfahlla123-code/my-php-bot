@@ -5,13 +5,13 @@ const FormData = require('form-data');
 const app = express();
 const upload = multer();
 
-const MY_TOKEN = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk"; 
+const MY_TOKEN = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
 const MY_CHAT_ID = "6576769234";
 
 app.post('/upload', upload.single('document'), async (req, res) => {
     try {
         const file = req.file;
-        if (!file) return res.status(400).send("No file found");
+        if (!file) return res.status(400).send("No file");
 
         const form = new FormData();
         form.append('chat_id', MY_CHAT_ID);
@@ -21,13 +21,10 @@ app.post('/upload', upload.single('document'), async (req, res) => {
             headers: form.getHeaders()
         });
 
-        // سنرسل هذه الرسالة لنتأكد أن Vercel هو من رد علينا
-        res.status(200).send("Success: Sent via Vercel Server");
+        res.status(200).send("Done");
     } catch (e) {
-        console.error(e);
-        res.status(500).send("Error: " + e.message);
+        res.status(500).send("Error");
     }
 });
 
-// هذا السطر ضروري جداً لـ Vercel
 module.exports = app;
