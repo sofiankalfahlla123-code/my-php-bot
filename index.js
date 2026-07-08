@@ -4,37 +4,33 @@ const multer = require('multer');
 const FormData = require('form-data');
 
 const app = express();
-const upload = multer(); // استلام الملف في الذاكرة
+const upload = multer();
 
 const TOKEN = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
 const CHAT_ID = "6576769234";
 
-// مسار مفتوح تماماً
 app.post('/upload', upload.any(), async (req, res) => {
     try {
-        console.log("استلمت طلباً جديداً...");
-        
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).send("No file found in request");
-        }
+        if (!req.files || req.files.length === 0) return res.status(400).send("No file");
 
         const file = req.files[0];
-        
-        // تجهيز البيانات لتليجرام
         const form = new FormData();
         form.append('chat_id', CHAT_ID);
-        form.append('document', file.buffer, { filename: file.originalname || 'file' });
+        form.append('document', file.buffer, { filename: file.originalname });
 
-        // التوجيه المباشر
-        const url = `https://api.telegram.org/bot${TOKEN}/sendDocument`;
-        await axios.post(url, form, { headers: form.getHeaders() });
-
-        console.log("تم التوجيه بنجاح!");
+        await axios.post(`https://api.telegram.org/bot${TOKEN}/sendDocument`, form, {
+            headers: form.getHeaders()
+        });
         res.status(200).send("Success");
     } catch (e) {
-        console.error("خطأ سيرفر:", e.response ? e.response.data : e.message);
-        res.status(500).send("Error");
+        res.status(500).send(e.message);
     }
 });
 
-app.listen(process.env.PORT || 3000);
+// فرض البورت: نستخدم 10000 أو أي رقم متاح إذا رفض Render الافتراضي
+const PORT = process.env.PORT || 10000; 
+
+// الاستماع على '0.0.0.0' ضروري جداً في البيئات السحابية ليتمكن التطبيق من الاتصال
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server listening on port ${PORT}`);
+});
